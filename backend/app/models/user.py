@@ -40,3 +40,8 @@ class User(Base):
         back_populates="user",
         uselist=False
     )
+    mentor_profile = relationship(
+    "MentorProfile",
+    back_populates="user",
+    uselist=False
+)
