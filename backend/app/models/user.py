@@ -44,4 +44,9 @@ class User(Base):
     "MentorProfile",
     back_populates="user",
     uselist=False
+    )
+    organization_profile = relationship(
+    "OrganizationProfile",
+    back_populates="user",
+    uselist=False
 )
