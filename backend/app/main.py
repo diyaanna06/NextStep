@@ -8,8 +8,10 @@ from app.api.v1.application import router as application_router
 from app.api.v1.session_request import router as session_request_router
 
 
+
 app = FastAPI(
-    title="HerPath API",
+    title="NextStep",
+    description="Career acceleration platform connecting students, mentors, and organizations.",
     version="1.0.0"
 )
 
@@ -46,5 +48,5 @@ app.include_router(
 @app.get("/")
 def root():
     return {
-        "message": "HerPath Backend Running"
+        "message": "NextStep Backend Running"
     }
