@@ -6,13 +6,22 @@ from app.api.v1.organization import router as organization_router
 from app.api.v1.opportunity import router as opportunity_router
 from app.api.v1.application import router as application_router
 from app.api.v1.session_request import router as session_request_router
-
+from fastapi.middleware.cors import CORSMiddleware
 
 
 app = FastAPI(
     title="NextStep",
     description="Career acceleration platform connecting students, mentors, and organizations.",
     version="1.0.0"
+)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:3000"
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 
