@@ -1,6 +1,10 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 
 import { opportunityService } from "@/services/opportunity-service";
 import { applicationService } from "@/services/application-service";
@@ -15,8 +19,7 @@ import {
 import { Button } from "@/components/ui/button";
 
 export default function OpportunitiesPage() {
-  const queryClient =
-    useQueryClient();
+  const queryClient = useQueryClient();
 
   const {
     data: opportunities,
@@ -28,6 +31,23 @@ export default function OpportunitiesPage() {
     queryFn: () =>
       opportunityService.getAll(),
   });
+
+  const {
+    data: applications,
+  } = useQuery({
+    queryKey: ["applications"],
+
+    queryFn: () =>
+      applicationService.getMyApplications(),
+  });
+
+  const appliedOpportunityIds =
+    new Set(
+      applications?.map(
+        (application) =>
+          application.opportunity_id
+      ) ?? []
+    );
 
   const applyMutation =
     useMutation({
@@ -51,32 +71,36 @@ export default function OpportunitiesPage() {
         });
       },
 
-      onError: (error: unknown) => {
-  let message =
-    "Failed to apply.";
+      onError: (
+        error: unknown
+      ) => {
+        let message =
+          "Failed to apply.";
 
-  if (
-    typeof error === "object" &&
-    error !== null &&
-    "response" in error
-  ) {
-    const axiosError =
-      error as {
-        response?: {
-          data?: {
-            detail?: string;
-          };
-        };
-      };
+        if (
+          typeof error ===
+            "object" &&
+          error !== null &&
+          "response" in error
+        ) {
+          const axiosError =
+            error as {
+              response?: {
+                data?: {
+                  detail?: string;
+                };
+              };
+            };
 
-    message =
-      axiosError.response
-        ?.data?.detail ??
-      message;
-  }
+          message =
+            axiosError
+              .response?.data
+              ?.detail ??
+            message;
+        }
 
-  alert(message);
-},
+        alert(message);
+      },
     });
 
   if (isLoading) {
@@ -108,84 +132,101 @@ export default function OpportunitiesPage() {
 
   return (
     <div className="space-y-4">
+
       {opportunities.map(
-        (opportunity) => (
-          <Card
-            key={
+        (opportunity) => {
+          const hasApplied =
+            appliedOpportunityIds.has(
               opportunity.id
-            }
-          >
-            <CardHeader>
-              <CardTitle>
-                {
-                  opportunity.title
-                }
-              </CardTitle>
-            </CardHeader>
+            );
 
-            <CardContent className="space-y-3">
+          const isApplying =
+            applyMutation.isPending &&
+            applyMutation.variables ===
+              opportunity.id;
 
-              <p>
-                {
-                  opportunity.description
-                }
-              </p>
+          return (
+            <Card
+              key={
+                opportunity.id
+              }
+            >
+              <CardHeader>
+                <CardTitle>
+                  {
+                    opportunity.title
+                  }
+                </CardTitle>
+              </CardHeader>
 
-              <div>
-                <strong>
-                  Type:
-                </strong>{" "}
-                {
-                  opportunity.opportunity_type
-                }
-              </div>
+              <CardContent className="space-y-3">
 
-              <div>
-                <strong>
-                  Location:
-                </strong>{" "}
-                {
-                  opportunity.location
-                }
-              </div>
+                <p>
+                  {
+                    opportunity.description
+                  }
+                </p>
 
-              <div>
-                <strong>
-                  Skills:
-                </strong>{" "}
-                {
-                  opportunity.skills_required
-                }
-              </div>
+                <div>
+                  <strong>
+                    Type:
+                  </strong>{" "}
+                  {
+                    opportunity.opportunity_type
+                  }
+                </div>
 
-              <div>
-                <strong>
-                  Deadline:
-                </strong>{" "}
-                {new Date(
-                  opportunity.application_deadline
-                ).toLocaleDateString()}
-              </div>
+                <div>
+                  <strong>
+                    Location:
+                  </strong>{" "}
+                  {
+                    opportunity.location
+                  }
+                </div>
 
-              <Button
-                onClick={() =>
-                  applyMutation.mutate(
-                    opportunity.id
-                  )
-                }
-                disabled={
-                  applyMutation.isPending
-                }
-              >
-                {applyMutation.isPending
-                  ? "Applying..."
-                  : "Apply"}
-              </Button>
+                <div>
+                  <strong>
+                    Skills:
+                  </strong>{" "}
+                  {
+                    opportunity.skills_required
+                  }
+                </div>
 
-            </CardContent>
-          </Card>
-        )
+                <div>
+                  <strong>
+                    Deadline:
+                  </strong>{" "}
+                  {new Date(
+                    opportunity.application_deadline
+                  ).toLocaleDateString()}
+                </div>
+
+                <Button
+                  onClick={() =>
+                    applyMutation.mutate(
+                      opportunity.id
+                    )
+                  }
+                  disabled={
+                    hasApplied ||
+                    isApplying
+                  }
+                >
+                  {hasApplied
+                    ? "Applied"
+                    : isApplying
+                    ? "Applying..."
+                    : "Apply"}
+                </Button>
+
+              </CardContent>
+            </Card>
+          );
+        }
       )}
+
     </div>
   );
 }
