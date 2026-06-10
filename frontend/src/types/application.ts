@@ -13,3 +13,7 @@ export interface Application {
 export interface CreateApplicationRequest {
   opportunity_id: number;
 }
+
+export interface UpdateApplicationStatusRequest {
+  status: string;
+}

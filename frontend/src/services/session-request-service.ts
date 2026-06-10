@@ -29,4 +29,34 @@ export const sessionRequestService = {
 
       return response.data;
     },
-};
+
+  getMentorRequests:
+    async (
+      mentorId: number
+    ) => {
+      const response =
+        await apiClient.get<
+          SessionRequest[]
+        >(
+          `/session-request/mentor/${mentorId}`
+        );
+
+      return response.data;
+    },
+    updateStatus: async (
+      requestId: number,
+      status: string
+    ) => {
+      const response =
+        await apiClient.put<
+          SessionRequest
+        >(
+          `/session-request/${requestId}/status`,
+          {
+            status,
+          }
+        );
+
+      return response.data;
+    },
+    };
