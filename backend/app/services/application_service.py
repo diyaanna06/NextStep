@@ -55,6 +55,10 @@ class ApplicationService:
             raise ValueError(
                 "Opportunity not found"
             )
+        if not opportunity.is_active:
+            raise ValueError(
+                "This opportunity is no longer accepting applications"
+            )
 
         existing_applications = (
             ApplicationRepository.get_student_applications(

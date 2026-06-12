@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-
+from datetime import datetime
 from app.models.opportunity import Opportunity
 from app.schemas.opportunity import (
     OpportunityCreateRequest,
@@ -65,15 +65,34 @@ class OpportunityRepository:
 
         return opportunity
 
+   
+
     @staticmethod
     def get_all_opportunities(
         db: Session
     ) -> list[Opportunity]:
 
-        return (
+        opportunities = (
             db.query(Opportunity)
             .all()
         )
+
+        updated = False
+
+        for opportunity in opportunities:
+
+            if (
+                opportunity.is_active and
+                opportunity.application_deadline.date() < datetime.today().date()
+            ):
+
+                opportunity.is_active = False
+                updated = True
+
+        if updated:
+            db.commit()
+
+        return opportunities
 
     @staticmethod
     def get_organization_opportunities(

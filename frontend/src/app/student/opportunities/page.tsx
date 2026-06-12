@@ -5,228 +5,205 @@ import {
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
-
+import { toast } from "@/hooks/use-toast";
 import { opportunityService } from "@/services/opportunity-service";
 import { applicationService } from "@/services/application-service";
 
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/shared/page-header";
+import { Badge } from "@/components/ui/badge";
+import { Briefcase, MapPin, Calendar, Sparkles, Loader2 } from "lucide-react";
 
 export default function OpportunitiesPage() {
   const queryClient = useQueryClient();
 
-  const {
-    data: opportunities,
-    isLoading,
-    error,
-  } = useQuery({
+  const { data: opportunities, isLoading, error } = useQuery({
     queryKey: ["opportunities"],
-
-    queryFn: () =>
-      opportunityService.getAll(),
+    queryFn: () => opportunityService.getAll(),
   });
+  const activeOpportunities =
+  opportunities?.filter(
+    (opportunity) => opportunity.is_active
+  ) ?? [];
 
-  const {
-    data: applications,
-  } = useQuery({
+  const { data: applications } = useQuery({
     queryKey: ["applications"],
-
-    queryFn: () =>
-      applicationService.getMyApplications(),
+    queryFn: () => applicationService.getMyApplications(),
   });
 
-  const appliedOpportunityIds =
-    new Set(
-      applications?.map(
-        (application) =>
-          application.opportunity_id
-      ) ?? []
+  const appliedOpportunityIds = new Set(
+    applications?.map((application) => application.opportunity_id) ?? []
+  );
+
+  const applyMutation = useMutation({
+  mutationFn: (
+    opportunityId: number
+  ) =>
+    applicationService.apply(
+      {
+        opportunity_id:
+          opportunityId,
+      }
+    ),
+
+  onSuccess: () => {
+    toast.success(
+      "Application submitted",
+      {
+        description:
+          "Your application has been submitted successfully.",
+      }
     );
 
-  const applyMutation =
-    useMutation({
-      mutationFn: (
-        opportunityId: number
-      ) =>
-        applicationService.apply({
-          opportunity_id:
-            opportunityId,
-        }),
+    queryClient.invalidateQueries(
+      {
+        queryKey: [
+          "applications",
+        ],
+      }
+    );
+  },
 
-      onSuccess: () => {
-        alert(
-          "Application submitted successfully!"
-        );
+  onError: (
+    error: unknown
+  ) => {
+    let message =
+      "Failed to apply.";
 
-        queryClient.invalidateQueries({
-          queryKey: [
-            "applications",
-          ],
-        });
-      },
-
-      onError: (
-        error: unknown
-      ) => {
-        let message =
-          "Failed to apply.";
-
-        if (
-          typeof error ===
-            "object" &&
-          error !== null &&
-          "response" in error
-        ) {
-          const axiosError =
-            error as {
-              response?: {
-                data?: {
-                  detail?: string;
-                };
-              };
+    if (
+      typeof error ===
+        "object" &&
+      error !== null &&
+      "response" in error
+    ) {
+      const axiosError =
+        error as {
+          response?: {
+            data?: {
+              detail?: string;
             };
+          };
+        };
 
-          message =
-            axiosError
-              .response?.data
-              ?.detail ??
-            message;
-        }
+      message =
+        axiosError
+          .response
+          ?.data
+          ?.detail ??
+        message;
+    }
 
-        alert(message);
-      },
-    });
+    toast.error(
+      "Application failed",
+      {
+        description:
+          message,
+      }
+    );
+  },
+});
 
   if (isLoading) {
     return (
-      <div>
-        Loading opportunities...
+      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <Loader2 className="h-4 w-4 animate-spin" /> Loading opportunities…
       </div>
     );
   }
 
   if (error) {
     return (
-      <div>
+      <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
         Failed to load opportunities.
       </div>
     );
   }
 
-  if (
-    !opportunities ||
-    opportunities.length === 0
-  ) {
+  if (activeOpportunities.length === 0) {
     return (
-      <div>
-        No opportunities available.
+      <div className="grid place-items-center rounded-xl border border-dashed border-border bg-card py-16 text-center">
+        <Briefcase className="h-8 w-8 text-muted-foreground" />
+        <p className="mt-3 font-medium">No opportunities available</p>
+        <p className="text-sm text-muted-foreground">
+          Check back soon — new opportunities are posted regularly.
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
+      <PageHeader
+        title="Opportunities"
+        description="Browse open roles and apply with one click."
+      />
 
-      {opportunities.map(
-        (opportunity) => {
-          const hasApplied =
-            appliedOpportunityIds.has(
-              opportunity.id
-            );
-
+      <div className="grid gap-4">
+        {activeOpportunities.map((opportunity) => {
+          const hasApplied = appliedOpportunityIds.has(opportunity.id);
           const isApplying =
             applyMutation.isPending &&
-            applyMutation.variables ===
-              opportunity.id;
+            applyMutation.variables === opportunity.id;
 
           return (
-            <Card
-              key={
-                opportunity.id
-              }
-            >
+            <Card key={opportunity.id} className="transition-shadow hover:shadow-md">
               <CardHeader>
-                <CardTitle>
-                  {
-                    opportunity.title
-                  }
-                </CardTitle>
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <CardTitle className="truncate">
+                      {opportunity.title}
+                    </CardTitle>
+                  </div>
+                  <Badge variant="secondary" className="shrink-0">
+                    {opportunity.opportunity_type}
+                  </Badge>
+                </div>
               </CardHeader>
 
-              <CardContent className="space-y-3">
-
-                <p>
-                  {
-                    opportunity.description
-                  }
+              <CardContent className="space-y-4">
+                <p className="text-sm leading-relaxed text-muted-foreground">
+                  {opportunity.description}
                 </p>
 
-                <div>
-                  <strong>
-                    Type:
-                  </strong>{" "}
-                  {
-                    opportunity.opportunity_type
-                  }
+                <div className="grid gap-2 text-sm sm:grid-cols-2">
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <MapPin className="h-4 w-4" />
+                    <span className="truncate">{opportunity.location}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Calendar className="h-4 w-4" />
+                    <span>
+                      Deadline{" "}
+                      {new Date(
+                        opportunity.application_deadline
+                      ).toLocaleDateString()}
+                    </span>
+                  </div>
+                  <div className="flex items-start gap-2 text-muted-foreground sm:col-span-2">
+                    <Sparkles className="mt-0.5 h-4 w-4" />
+                    <span>{opportunity.skills_required}</span>
+                  </div>
                 </div>
 
-                <div>
-                  <strong>
-                    Location:
-                  </strong>{" "}
-                  {
-                    opportunity.location
-                  }
+                <div className="flex justify-end">
+                  <Button
+                    onClick={() => applyMutation.mutate(opportunity.id)}
+                    disabled={hasApplied || isApplying}
+                    variant={hasApplied ? "secondary" : "default"}
+                  >
+                    {hasApplied
+                      ? "Applied"
+                      : isApplying
+                      ? "Applying…"
+                      : "Apply"}
+                  </Button>
                 </div>
-
-                <div>
-                  <strong>
-                    Skills:
-                  </strong>{" "}
-                  {
-                    opportunity.skills_required
-                  }
-                </div>
-
-                <div>
-                  <strong>
-                    Deadline:
-                  </strong>{" "}
-                  {new Date(
-                    opportunity.application_deadline
-                  ).toLocaleDateString()}
-                </div>
-
-                <Button
-                  onClick={() =>
-                    applyMutation.mutate(
-                      opportunity.id
-                    )
-                  }
-                  disabled={
-                    hasApplied ||
-                    isApplying
-                  }
-                >
-                  {hasApplied
-                    ? "Applied"
-                    : isApplying
-                    ? "Applying..."
-                    : "Apply"}
-                </Button>
-
               </CardContent>
             </Card>
           );
-        }
-      )}
-
+        })}
+      </div>
     </div>
   );
 }
