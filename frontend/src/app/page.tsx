@@ -22,7 +22,7 @@ export default function Home() {
   ];
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-background to-secondary/40">
+    <main className="min-h-screen bg-linear-to-b from-background to-secondary/40">
       <header className="mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
         <div className="flex items-center gap-2">
           <div className="grid h-9 w-9 place-items-center rounded-lg bg-primary text-primary-foreground font-bold">
