@@ -1,6 +1,10 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 
 import { mentorService } from "@/services/mentor-service";
 import { sessionRequestService } from "@/services/session-request-service";
@@ -12,8 +16,12 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
+import { Button } from "@/components/ui/button";
+
 import { PageHeader } from "@/components/shared/page-header";
 import { Skeleton } from "@/components/ui/skeleton";
+
+import { toast } from "@/hooks/use-toast";
 
 import {
   Clock,
@@ -25,11 +33,16 @@ import {
 } from "lucide-react";
 
 export default function MentorDashboard() {
+  const queryClient =
+    useQueryClient();
+
   const {
     data: profile,
     isLoading: profileLoading,
   } = useQuery({
-    queryKey: ["mentor-profile"],
+    queryKey: [
+      "mentor-profile",
+    ],
     queryFn: () =>
       mentorService.getMyProfile(),
   });
@@ -38,7 +51,9 @@ export default function MentorDashboard() {
     data: requests,
     isLoading: requestsLoading,
   } = useQuery({
-    queryKey: ["mentor-requests"],
+    queryKey: [
+      "mentor-requests",
+    ],
     queryFn: async () => {
       const mentor =
         await mentorService.getMyProfile();
@@ -48,6 +63,63 @@ export default function MentorDashboard() {
       );
     },
   });
+
+  const availabilityMutation =
+    useMutation({
+      mutationFn: (
+        availability: boolean
+      ) =>
+        mentorService.updateProfile(
+          {
+            availability_status:
+              availability,
+          }
+        ),
+
+      onSuccess: () => {
+        queryClient.invalidateQueries(
+          {
+            queryKey: [
+              "mentor-profile",
+            ],
+          }
+        );
+
+        queryClient.invalidateQueries(
+          {
+            queryKey: [
+              "mentor-requests",
+            ],
+          }
+        );
+
+        queryClient.invalidateQueries(
+          {
+            queryKey: [
+              "mentors",
+            ],
+          }
+        );
+
+        toast.success(
+          "Availability updated",
+          {
+            description:
+              "Your mentorship availability has been updated.",
+          }
+        );
+      },
+
+      onError: () => {
+        toast.error(
+          "Update failed",
+          {
+            description:
+              "Failed to update availability.",
+          }
+        );
+      },
+    });
 
   const loading =
     profileLoading ||
@@ -95,7 +167,6 @@ export default function MentorDashboard() {
 
   return (
     <div className="space-y-8">
-
       <PageHeader
         title={
           profile?.full_name
@@ -106,7 +177,6 @@ export default function MentorDashboard() {
       />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-
         {stats.map(
           (stat) => (
             <Card
@@ -115,7 +185,6 @@ export default function MentorDashboard() {
               }
             >
               <CardContent className="flex items-center justify-between gap-4">
-
                 <div>
                   <p className="text-sm text-muted-foreground">
                     {
@@ -124,31 +193,24 @@ export default function MentorDashboard() {
                   </p>
 
                   <div className="mt-2 font-heading text-3xl font-semibold">
-
                     {loading ? (
                       <Skeleton className="h-8 w-12" />
                     ) : (
                       stat.value
                     )}
-
                   </div>
                 </div>
 
                 <div className="grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary">
-
                   <stat.icon className="h-5 w-5" />
-
                 </div>
-
               </CardContent>
             </Card>
           )
         )}
-
       </div>
 
       <Card>
-
         <CardHeader>
           <CardTitle>
             Mentor Details
@@ -156,11 +218,8 @@ export default function MentorDashboard() {
         </CardHeader>
 
         <CardContent className="grid gap-6 md:grid-cols-2">
-
           <div className="space-y-4">
-
             <div className="flex items-center gap-3">
-
               <User className="h-5 w-5 text-muted-foreground" />
 
               <div>
@@ -177,13 +236,10 @@ export default function MentorDashboard() {
                     }
                   </p>
                 )}
-
               </div>
-
             </div>
 
             <div className="flex items-center gap-3">
-
               <Briefcase className="h-5 w-5 text-muted-foreground" />
 
               <div>
@@ -200,13 +256,10 @@ export default function MentorDashboard() {
                     }
                   </p>
                 )}
-
               </div>
-
             </div>
 
             <div className="flex items-center gap-3">
-
               <Building2 className="h-5 w-5 text-muted-foreground" />
 
               <div>
@@ -223,15 +276,11 @@ export default function MentorDashboard() {
                     }
                   </p>
                 )}
-
               </div>
-
             </div>
-
           </div>
 
           <div className="space-y-4">
-
             <div>
               <p className="text-sm text-muted-foreground">
                 Years of Experience
@@ -247,7 +296,6 @@ export default function MentorDashboard() {
                   years
                 </p>
               )}
-
             </div>
 
             <div>
@@ -264,15 +312,43 @@ export default function MentorDashboard() {
                   }
                 </p>
               )}
-
             </div>
 
+            <div>
+              <p className="text-sm text-muted-foreground">
+                Mentorship Availability
+              </p>
+
+              {profileLoading ? (
+                <Skeleton className="mt-2 h-10 w-32" />
+              ) : (
+                <Button
+                  className="mt-2"
+                  variant={
+                    profile?.availability_status
+                      ? "default"
+                      : "outline"
+                  }
+                  disabled={
+                    availabilityMutation.isPending
+                  }
+                  onClick={() =>
+                    availabilityMutation.mutate(
+                      !profile?.availability_status
+                    )
+                  }
+                >
+                  {availabilityMutation.isPending
+                    ? "Updating..."
+                    : profile?.availability_status
+                    ? "Available"
+                    : "Unavailable"}
+                </Button>
+              )}
+            </div>
           </div>
-
         </CardContent>
-
       </Card>
-
     </div>
   );
 }

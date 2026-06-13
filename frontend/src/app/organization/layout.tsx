@@ -16,7 +16,7 @@ export default function OrganizationLayout({
       <div className="flex min-h-screen bg-background">
         <OrganizationSidebar />
         <main className="flex-1 overflow-y-auto">
-          <div className="mx-auto max-w-7xl px-6 py-8 md:px-10 md:py-10">
+          <div className="mx-auto max-w-7xl px-6 pt-20 pb-8 md:px-10 md:py-10">
             {children}
           </div>
         </main>

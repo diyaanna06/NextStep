@@ -35,7 +35,7 @@ export default function LoginPage() {
       if (user.role === "student") router.push("/student");
       else if (user.role === "mentor") router.push("/mentor");
       else router.push("/organization");
-    } catch (error) {
+    } catch {
     
       useAuthStore.getState().logout();
       toast.error("Login failed", {

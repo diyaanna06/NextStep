@@ -141,10 +141,31 @@ class SessionRequestService:
                 "Session request not found"
             )
 
-        return (
+        updated_request = (
             SessionRequestRepository.update_status(
                 db,
                 session_request,
                 status
             )
         )
+
+        if status == "Accepted":
+
+            mentor_profile = (
+                MentorProfileRepository.get_profile_by_user_id(
+                    db,
+                    current_user.id
+                )
+            )
+
+            if mentor_profile:
+
+                mentor_profile.availability_status = False
+
+                db.commit()
+
+                db.refresh(
+                    mentor_profile
+                )
+
+        return updated_request

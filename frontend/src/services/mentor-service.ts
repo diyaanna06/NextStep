@@ -1,6 +1,9 @@
 import { apiClient } from "./api-client";
 
-import { MentorProfile } from "@/types/mentor";
+import {
+  MentorProfile,
+  UpdateMentorProfileRequest,
+} from "@/types/mentor";
 
 export const mentorService = {
   getMyProfile: async () => {
@@ -12,15 +15,40 @@ export const mentorService = {
     return response.data;
   },
 
-  getAllMentors:
+  getAllMentors: async () => {
+    const response =
+      await apiClient.get<
+        MentorProfile[]
+      >("/mentor");
+
+    return response.data;
+  },
+
+  getAvailableMentors:
     async () => {
       const response =
         await apiClient.get<
           MentorProfile[]
-        >("/mentor");
+        >(
+          "/mentor?available=true"
+        );
 
       return response.data;
     },
+
+  updateProfile: async (
+    data: UpdateMentorProfileRequest
+  ) => {
+    const response =
+      await apiClient.put<
+        MentorProfile
+      >(
+        "/mentor/profile/me",
+        data
+      );
+
+    return response.data;
+  },
 
   getMentorById:
     async (id: number) => {
