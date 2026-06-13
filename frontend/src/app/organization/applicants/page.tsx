@@ -89,42 +89,86 @@ export default function ApplicantsPage() {
               <Card key={application.id}>
                 <CardHeader>
                   <div className="flex flex-wrap items-center justify-between gap-3">
-                    <CardTitle>Student #{application.student_id}</CardTitle>
+                   <div>
+  <CardTitle>
+    {application.student.full_name}
+  </CardTitle>
+
+  <p className="text-sm text-muted-foreground">
+    {application.student.degree} •{" "}
+    {application.student.college}
+  </p>
+</div>
                     <StatusBadge status={application.status} />
                   </div>
                 </CardHeader>
                 <CardContent>
+                  <div className="mb-4 space-y-2 text-sm">
+                  <p>
+                    <span className="font-medium">
+                      Opportunity:
+                    </span>{" "}
+                    {application.opportunity.title}
+                  </p>
+
+                  <p>
+                    <span className="font-medium">
+                      Skills:
+                    </span>{" "}
+                    {application.student.skills || "Not provided"}
+                  </p>
+
+                  {application.student.resume_link && (
+                    <a
+                      href={application.student.resume_link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary hover:underline"
+                    >
+                      View Resume
+                    </a>
+                  )}
+                </div>
                   <p className="mb-3 text-xs uppercase tracking-wider text-muted-foreground">
                     Update status
                   </p>
                   <div className="flex flex-wrap gap-2">
-                    {["Reviewed", "Shortlisted", "Accepted", "Rejected"].map(
-                      (status) => {
-                        const variant =
-                          status === "Rejected"
-                            ? "destructive"
-                            : status === "Accepted"
+                  {[
+                    "Reviewed",
+                    "Shortlisted",
+                    "Accepted",
+                    "Rejected",
+                  ].map((status) => {
+                    const isCurrent =
+                      application.status === status;
+
+                    return (
+                      <Button
+                        key={status}
+                        size="sm"
+                        variant={
+                          isCurrent
                             ? "default"
-                            : "outline";
-                        return (
-                          <Button
-                            key={status}
-                            size="sm"
-                            variant={variant}
-                            disabled={isUpdating}
-                            onClick={() =>
-                              mutation.mutate({
-                                applicationId: application.id,
-                                status,
-                              })
-                            }
-                          >
-                            {status}
-                          </Button>
-                        );
-                      }
-                    )}
-                  </div>
+                            : "outline"
+                        }
+                        disabled={isUpdating}
+                        onClick={() => {
+                          if (
+                            application.status !== status
+                          ) {
+                            mutation.mutate({
+                              applicationId:
+                                application.id,
+                              status,
+                            });
+                          }
+                        }}
+                      >
+                        {status}
+                      </Button>
+                    );
+                  })}
+                </div>
                 </CardContent>
               </Card>
             );

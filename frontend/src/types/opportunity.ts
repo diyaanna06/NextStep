@@ -1,6 +1,18 @@
+export interface OrganizationSummary {
+  user_id: number;
+
+  organization_name: string;
+  industry: string;
+
+  website: string;
+  description: string;
+
+  location: string;
+  verified: boolean;
+}
+
 export interface Opportunity {
   id: number;
-  organization_id: number;
 
   title: string;
   description: string;
@@ -14,6 +26,8 @@ export interface Opportunity {
 
   is_active: boolean;
   created_at: string;
+
+  organization: OrganizationSummary;
 }
 
 export interface CreateOpportunityRequest {

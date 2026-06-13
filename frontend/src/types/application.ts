@@ -1,9 +1,12 @@
+import { Opportunity } from "./opportunity";
+import { StudentProfile } from "./student-profile";
+
 export interface Application {
   id: number;
 
-  student_id: number;
+  student: StudentProfile;
 
-  opportunity_id: number;
+  opportunity: Opportunity;
 
   status: string;
 

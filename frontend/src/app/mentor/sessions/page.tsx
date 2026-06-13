@@ -76,42 +76,101 @@ export default function MentorSessionsPage() {
           {requests.map((request) => (
             <Card key={request.id}>
               <CardHeader>
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <CardTitle>Student #{request.student_id}</CardTitle>
-                  <StatusBadge status={request.status} />
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div className="flex items-start gap-4">
+                  <div className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-primary/10 font-semibold text-primary">
+                    {(
+                      request.student.full_name ??
+                      "?"
+                    )
+                      .charAt(0)
+                      .toUpperCase()}
+                  </div>
+
+                  <div>
+                    <CardTitle>
+                      {request.student.full_name}
+                    </CardTitle>
+
+                    <p className="text-sm text-muted-foreground">
+                      {request.student.degree} •{" "}
+                      {request.student.college}
+                    </p>
+                  </div>
                 </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="text-sm text-muted-foreground">
-                  {request.message}
+
+                <StatusBadge status={request.status} />
+              </div>
+            </CardHeader>
+
+            <CardContent className="space-y-4">
+              <div className="space-y-2 text-sm">
+                <p>
+                  <span className="font-medium">
+                    Skills:
+                  </span>{" "}
+                  {request.student.skills ||
+                    "Not provided"}
                 </p>
 
-                {request.status === "Pending" && (
-                  <div className="flex flex-wrap gap-2">
-                    <Button
-                      onClick={() =>
-                        updateMutation.mutate({
-                          requestId: request.id,
-                          status: "Accepted",
-                        })
-                      }
-                    >
-                      Accept
-                    </Button>
-                    <Button
-                      variant="destructive"
-                      onClick={() =>
-                        updateMutation.mutate({
-                          requestId: request.id,
-                          status: "Rejected",
-                        })
-                      }
-                    >
-                      Reject
-                    </Button>
-                  </div>
+                {request.student.career_interests && (
+                  <p>
+                    <span className="font-medium">
+                      Career Interests:
+                    </span>{" "}
+                    {
+                      request.student
+                        .career_interests
+                    }
+                  </p>
                 )}
-              </CardContent>
+
+                {request.student.resume_link && (
+                  <a
+                    href={
+                      request.student
+                        .resume_link
+                    }
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary hover:underline"
+                  >
+                    View Resume
+                  </a>
+                )}
+              </div>
+
+              <div className="rounded-md bg-muted p-3 text-sm text-muted-foreground">
+                {request.message}
+              </div>
+
+              {request.status === "Pending" && (
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    onClick={() =>
+                      updateMutation.mutate({
+                        requestId: request.id,
+                        status: "Accepted",
+                      })
+                    }
+                  >
+                    Accept
+                  </Button>
+
+                  <Button
+                    variant="destructive"
+                    onClick={() =>
+                      updateMutation.mutate({
+                        requestId: request.id,
+                        status: "Rejected",
+                      })
+                    }
+                  >
+                    Reject
+                  </Button>
+                </div>
+              )}
+            </CardContent>
             </Card>
           ))}
         </div>

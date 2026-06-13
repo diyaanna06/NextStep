@@ -1,7 +1,9 @@
 from datetime import datetime
-from typing import Optional
 
 from pydantic import BaseModel
+
+from app.schemas.opportunity import OpportunityResponse
+from app.schemas.student_profile import ProfileResponse
 
 
 class ApplicationCreateRequest(BaseModel):
@@ -14,8 +16,11 @@ class ApplicationStatusUpdateRequest(BaseModel):
 
 class ApplicationResponse(BaseModel):
     id: int
-    student_id: int
-    opportunity_id: int
+
+    student: ProfileResponse
+
+    opportunity: OpportunityResponse
+
     status: str
     created_at: datetime
 

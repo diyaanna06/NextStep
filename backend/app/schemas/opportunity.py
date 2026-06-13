@@ -23,9 +23,21 @@ class OpportunityUpdateRequest(BaseModel):
     is_active: Optional[bool] = None
 
 
+class OrganizationSummary(BaseModel):
+    user_id: int
+    organization_name: str
+    industry: str
+    website: str
+    description: str
+    location: str
+    verified: bool
+
+    class Config:
+        from_attributes = True
+
+
 class OpportunityResponse(BaseModel):
     id: int
-    organization_id: int
 
     title: str
     description: str
@@ -39,6 +51,8 @@ class OpportunityResponse(BaseModel):
 
     is_active: bool
     created_at: datetime
+
+    organization: OrganizationSummary
 
     class Config:
         from_attributes = True

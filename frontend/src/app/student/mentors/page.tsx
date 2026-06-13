@@ -13,7 +13,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/shared/page-header";
 import { Badge } from "@/components/ui/badge";
-import { Briefcase, Users, Loader2 } from "lucide-react";
+import { Briefcase, Users, Loader2,Building2 } from "lucide-react";
 
 export default function MentorsPage() {
   const queryClient = useQueryClient();
@@ -124,12 +124,10 @@ export default function MentorsPage() {
                   <Briefcase className="h-4 w-4" />
                   {mentor.years_of_experience} years experience
                 </div>
-                <p className="text-muted-foreground">
-                  <span className="font-medium text-foreground">
-                    Expertise:
-                  </span>{" "}
-                  {mentor.expertise_areas}
-                </p>
+                <div className="flex items-start gap-2 text-muted-foreground">
+                <Building2 className="mt-0.5 h-4 w-4 shrink-0" />
+                <span>{mentor.expertise_areas}</span>
+              </div>
                 <Button
                   className="w-full"
                   disabled={!mentor.availability_status || isRequesting}

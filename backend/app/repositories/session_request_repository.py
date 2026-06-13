@@ -1,8 +1,20 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import (
+    Session,
+    joinedload
+)
 
 from app.models.session_request import (
     SessionRequest
 )
+
+from app.models.mentor_profile import (
+    MentorProfile
+)
+
+from app.models.student_profile import (
+    StudentProfile
+)
+
 from app.schemas.session_request import (
     SessionRequestCreateRequest
 )
@@ -24,10 +36,25 @@ class SessionRequestRepository:
         )
 
         db.add(session_request)
-        db.commit()
-        db.refresh(session_request)
 
-        return session_request
+        db.commit()
+
+        return (
+            db.query(SessionRequest)
+            .options(
+                joinedload(
+                    SessionRequest.mentor
+                ),
+                joinedload(
+                    SessionRequest.student
+                )
+            )
+            .filter(
+                SessionRequest.id
+                == session_request.id
+            )
+            .first()
+        )
 
     @staticmethod
     def get_session_request_by_id(
@@ -37,8 +64,17 @@ class SessionRequestRepository:
 
         return (
             db.query(SessionRequest)
+            .options(
+                joinedload(
+                    SessionRequest.mentor
+                ),
+                joinedload(
+                    SessionRequest.student
+                )
+            )
             .filter(
-                SessionRequest.id == request_id
+                SessionRequest.id
+                == request_id
             )
             .first()
         )
@@ -51,8 +87,17 @@ class SessionRequestRepository:
 
         return (
             db.query(SessionRequest)
+            .options(
+                joinedload(
+                    SessionRequest.mentor
+                ),
+                joinedload(
+                    SessionRequest.student
+                )
+            )
             .filter(
-                SessionRequest.student_id == student_id
+                SessionRequest.student_id
+                == student_id
             )
             .all()
         )
@@ -65,8 +110,17 @@ class SessionRequestRepository:
 
         return (
             db.query(SessionRequest)
+            .options(
+                joinedload(
+                    SessionRequest.mentor
+                ),
+                joinedload(
+                    SessionRequest.student
+                )
+            )
             .filter(
-                SessionRequest.mentor_id == mentor_id
+                SessionRequest.mentor_id
+                == mentor_id
             )
             .all()
         )
@@ -81,6 +135,20 @@ class SessionRequestRepository:
         session_request.status = status
 
         db.commit()
-        db.refresh(session_request)
 
-        return session_request
+        return (
+            db.query(SessionRequest)
+            .options(
+                joinedload(
+                    SessionRequest.mentor
+                ),
+                joinedload(
+                    SessionRequest.student
+                )
+            )
+            .filter(
+                SessionRequest.id
+                == session_request.id
+            )
+            .first()
+        )

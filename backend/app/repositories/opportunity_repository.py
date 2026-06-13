@@ -1,6 +1,9 @@
-from sqlalchemy.orm import Session
 from datetime import datetime
+
+from sqlalchemy.orm import Session, joinedload
+
 from app.models.opportunity import Opportunity
+
 from app.schemas.opportunity import (
     OpportunityCreateRequest,
     OpportunityUpdateRequest
@@ -30,7 +33,16 @@ class OpportunityRepository:
         db.commit()
         db.refresh(opportunity)
 
-        return opportunity
+        return (
+            db.query(Opportunity)
+            .options(
+                joinedload(Opportunity.organization)
+            )
+            .filter(
+                Opportunity.id == opportunity.id
+            )
+            .first()
+        )
 
     @staticmethod
     def get_opportunity_by_id(
@@ -40,6 +52,9 @@ class OpportunityRepository:
 
         return (
             db.query(Opportunity)
+            .options(
+                joinedload(Opportunity.organization)
+            )
             .filter(
                 Opportunity.id == opportunity_id
             )
@@ -61,11 +76,17 @@ class OpportunityRepository:
             setattr(opportunity, field, value)
 
         db.commit()
-        db.refresh(opportunity)
 
-        return opportunity
-
-   
+        return (
+            db.query(Opportunity)
+            .options(
+                joinedload(Opportunity.organization)
+            )
+            .filter(
+                Opportunity.id == opportunity.id
+            )
+            .first()
+        )
 
     @staticmethod
     def get_all_opportunities(
@@ -74,6 +95,9 @@ class OpportunityRepository:
 
         opportunities = (
             db.query(Opportunity)
+            .options(
+                joinedload(Opportunity.organization)
+            )
             .all()
         )
 
@@ -83,7 +107,8 @@ class OpportunityRepository:
 
             if (
                 opportunity.is_active and
-                opportunity.application_deadline.date() < datetime.today().date()
+                opportunity.application_deadline.date()
+                < datetime.today().date()
             ):
 
                 opportunity.is_active = False
@@ -102,12 +127,15 @@ class OpportunityRepository:
 
         return (
             db.query(Opportunity)
+            .options(
+                joinedload(Opportunity.organization)
+            )
             .filter(
-                Opportunity.organization_id
-                == organization_id
+                Opportunity.organization_id == organization_id
             )
             .all()
         )
+
     @staticmethod
     def filter_opportunities(
         db: Session,
@@ -116,7 +144,12 @@ class OpportunityRepository:
         is_active: bool | None = None
     ) -> list[Opportunity]:
 
-        query = db.query(Opportunity)
+        query = (
+            db.query(Opportunity)
+            .options(
+                joinedload(Opportunity.organization)
+            )
+        )
 
         if opportunity_type:
             query = query.filter(

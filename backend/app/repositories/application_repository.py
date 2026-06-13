@@ -1,6 +1,11 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import (
+    Session,
+    joinedload
+)
 
 from app.models.application import Application
+from app.models.opportunity import Opportunity
+
 from app.schemas.application import (
     ApplicationCreateRequest
 )
@@ -22,9 +27,24 @@ class ApplicationRepository:
 
         db.add(application)
         db.commit()
-        db.refresh(application)
 
-        return application
+        return (
+            db.query(Application)
+            .options(
+                joinedload(
+                    Application.student
+                ),
+                joinedload(
+                    Application.opportunity
+                ).joinedload(
+                    Opportunity.organization
+                )
+            )
+            .filter(
+                Application.id == application.id
+            )
+            .first()
+        )
 
     @staticmethod
     def get_application_by_id(
@@ -34,6 +54,16 @@ class ApplicationRepository:
 
         return (
             db.query(Application)
+            .options(
+                joinedload(
+                    Application.student
+                ),
+                joinedload(
+                    Application.opportunity
+                ).joinedload(
+                    Opportunity.organization
+                )
+            )
             .filter(
                 Application.id == application_id
             )
@@ -48,6 +78,16 @@ class ApplicationRepository:
 
         return (
             db.query(Application)
+            .options(
+                joinedload(
+                    Application.student
+                ),
+                joinedload(
+                    Application.opportunity
+                ).joinedload(
+                    Opportunity.organization
+                )
+            )
             .filter(
                 Application.student_id == student_id
             )
@@ -62,9 +102,18 @@ class ApplicationRepository:
 
         return (
             db.query(Application)
+            .options(
+                joinedload(
+                    Application.student
+                ),
+                joinedload(
+                    Application.opportunity
+                ).joinedload(
+                    Opportunity.organization
+                )
+            )
             .filter(
-                Application.opportunity_id
-                == opportunity_id
+                Application.opportunity_id == opportunity_id
             )
             .all()
         )
@@ -79,6 +128,21 @@ class ApplicationRepository:
         application.status = status
 
         db.commit()
-        db.refresh(application)
 
-        return application
+        return (
+            db.query(Application)
+            .options(
+                joinedload(
+                    Application.student
+                ),
+                joinedload(
+                    Application.opportunity
+                ).joinedload(
+                    Opportunity.organization
+                )
+            )
+            .filter(
+                Application.id == application.id
+            )
+            .first()
+        )

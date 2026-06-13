@@ -1,7 +1,12 @@
+import { MentorProfile } from "./mentor";
+import { StudentProfile } from "./student-profile";
+
 export interface SessionRequest {
   id: number;
-  student_id: number;
-  mentor_id: number;
+
+  student: StudentProfile;
+
+  mentor: MentorProfile;
 
   message: string;
 
