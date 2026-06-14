@@ -10,11 +10,21 @@ export interface LoginResponse {
   token_type: string;
 }
 
+export interface RegisterRequest {
+  email: string;
+  password: string;
+  role:
+    | "student"
+    | "mentor"
+    | "organization";
+}
+
 export const authService = {
   login: async (
     data: LoginRequest
   ) => {
-    const params = new URLSearchParams();
+    const params =
+      new URLSearchParams();
 
     params.append(
       "username",
@@ -41,12 +51,25 @@ export const authService = {
     return response.data;
   },
 
-  getCurrentUser: async () => {
+  register: async (
+    data: RegisterRequest
+  ) => {
     const response =
-      await apiClient.get(
-        "/auth/me"
+      await apiClient.post(
+        "/auth/register",
+        data
       );
 
     return response.data;
   },
+
+  getCurrentUser:
+    async () => {
+      const response =
+        await apiClient.get(
+          "/auth/me"
+        );
+
+      return response.data;
+    },
 };

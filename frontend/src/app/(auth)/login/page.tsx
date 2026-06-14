@@ -1,5 +1,5 @@
 "use client";
-
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -140,9 +140,21 @@ export default function LoginPage() {
             </Button>
           </form>
 
-          <p className="mt-8 text-center text-xs text-muted-foreground">
-            By signing in you agree to our Terms and Privacy Policy.
-          </p>
+          <div className="mt-8 space-y-3">
+  <p className="text-center text-sm text-muted-foreground">
+    Don&apos;t have an account?{" "}
+    <Link
+      href="/register"
+      className="font-medium text-primary hover:underline"
+    >
+      Create one
+    </Link>
+  </p>
+
+  <p className="text-center text-xs text-muted-foreground">
+    By signing in you agree to our Terms and Privacy Policy.
+  </p>
+</div>
         </div>
       </div>
     </div>
