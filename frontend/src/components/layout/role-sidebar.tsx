@@ -1,10 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import {
+  usePathname,
+  useRouter,
+} from "next/navigation";
 import { useState } from "react";
 
-import { LogOut, Menu } from "lucide-react";
+import {
+  LogOut,
+  Menu,
+} from "lucide-react";
 
 import {
   Sheet,
@@ -14,12 +20,15 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+
 import {
   VisuallyHidden,
 } from "@radix-ui/react-visually-hidden";
+
 import { useAuthStore } from "@/stores/auth-store";
 import { NavigationItem } from "@/types/navigation";
 import { cn } from "@/lib/utils";
+import { queryClient } from "@/components/providers/query-provider";
 
 interface RoleSidebarProps {
   portalLabel: string;
@@ -39,8 +48,17 @@ function SidebarContent({
   pathname,
   onNavigate,
 }: SidebarContentProps) {
-  const logout = useAuthStore((s) => s.logout);
-  const user = useAuthStore((s) => s.user);
+  const router = useRouter();
+
+  const logout =
+    useAuthStore(
+      (s) => s.logout
+    );
+
+  const user =
+    useAuthStore(
+      (s) => s.user
+    );
 
   return (
     <>
@@ -61,53 +79,77 @@ function SidebarContent({
       </div>
 
       <nav className="flex-1 space-y-1 px-3">
-        {items.map((item) => {
-          const active =
-            item.href === `/${user?.role}`
-              ? pathname === item.href
-              : pathname === item.href ||
-                pathname.startsWith(
-                  item.href + "/"
-                );
+        {items.map(
+          (item) => {
+            const active =
+              item.href ===
+              `/${user?.role}`
+                ? pathname ===
+                  item.href
+                : pathname ===
+                    item.href ||
+                  pathname.startsWith(
+                    item.href +
+                      "/"
+                  );
 
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              onClick={onNavigate}
-              className={cn(
-                "group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-                active
-                  ? "bg-sidebar-primary text-sidebar-primary-foreground"
-                  : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-              )}
-            >
-              <item.icon className="h-4 w-4 shrink-0" />
+            return (
+              <Link
+                key={
+                  item.href
+                }
+                href={
+                  item.href
+                }
+                onClick={
+                  onNavigate
+                }
+                className={cn(
+                  "group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
 
-              <span className="truncate">
-                {item.title}
-              </span>
-            </Link>
-          );
-        })}
+                  active
+                    ? "bg-sidebar-primary text-sidebar-primary-foreground"
+                    : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                )}
+              >
+                <item.icon className="h-4 w-4 shrink-0" />
+
+                <span className="truncate">
+                  {
+                    item.title
+                  }
+                </span>
+              </Link>
+            );
+          }
+        )}
       </nav>
 
       <div className="border-t border-sidebar-border p-3">
         {user && (
           <div className="mb-2 flex items-center gap-3 rounded-lg px-3 py-2">
             <div className="grid h-8 w-8 place-items-center rounded-full bg-sidebar-accent text-sm font-semibold">
-              {(user.email ?? "?")
-                .charAt(0)
+              {(
+                user.email ??
+                "?"
+              )
+                .charAt(
+                  0
+                )
                 .toUpperCase()}
             </div>
 
             <div className="min-w-0">
               <p className="truncate text-sm font-medium">
-                {user.email}
+                {
+                  user.email
+                }
               </p>
 
               <p className="text-[11px] capitalize text-sidebar-foreground/60">
-                {user.role}
+                {
+                  user.role
+                }
               </p>
             </div>
           </div>
@@ -115,8 +157,15 @@ function SidebarContent({
 
         <button
           onClick={() => {
+            queryClient.clear();
+
             logout();
+
             onNavigate?.();
+
+            router.push(
+              "/login"
+            );
           }}
           className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-sidebar-foreground/80 transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
         >
@@ -133,17 +182,23 @@ export function RoleSidebar({
   portalLabel,
   items,
 }: RoleSidebarProps) {
-  const pathname = usePathname();
+  const pathname =
+    usePathname();
 
-  const [open, setOpen] =
-    useState(false);
+  const [
+    open,
+    setOpen,
+  ] = useState(
+    false
+  );
 
   return (
     <>
-      {/* Mobile Sidebar */}
       <Sheet
         open={open}
-        onOpenChange={setOpen}
+        onOpenChange={
+          setOpen
+        }
       >
         <SheetTrigger asChild>
           <button
@@ -156,40 +211,53 @@ export function RoleSidebar({
         </SheetTrigger>
 
         <SheetContent
-  side="left"
-  className="w-64 border-r border-sidebar-border bg-sidebar p-0 text-sidebar-foreground"
->
-  <VisuallyHidden>
-    <SheetHeader>
-      <SheetTitle>
-        Navigation Menu
-      </SheetTitle>
+          side="left"
+          className="w-64 border-r border-sidebar-border bg-sidebar p-0 text-sidebar-foreground"
+        >
+          <VisuallyHidden>
+            <SheetHeader>
+              <SheetTitle>
+                Navigation
+                Menu
+              </SheetTitle>
 
-      <SheetDescription>
-        Access dashboard navigation links.
-      </SheetDescription>
-    </SheetHeader>
-  </VisuallyHidden>
+              <SheetDescription>
+                Access
+                dashboard
+                navigation
+                links.
+              </SheetDescription>
+            </SheetHeader>
+          </VisuallyHidden>
 
-  <div className="flex h-full flex-col">
-    <SidebarContent
-      portalLabel={portalLabel}
-      items={items}
-      pathname={pathname}
-      onNavigate={() =>
-        setOpen(false)
-      }
-    />
-  </div>
-</SheetContent>
+          <div className="flex h-full flex-col">
+            <SidebarContent
+              portalLabel={
+                portalLabel
+              }
+              items={items}
+              pathname={
+                pathname
+              }
+              onNavigate={() =>
+                setOpen(
+                  false
+                )
+              }
+            />
+          </div>
+        </SheetContent>
       </Sheet>
 
-      {/* Desktop Sidebar */}
       <aside className="hidden w-64 shrink-0 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground md:flex">
         <SidebarContent
-          portalLabel={portalLabel}
+          portalLabel={
+            portalLabel
+          }
           items={items}
-          pathname={pathname}
+          pathname={
+            pathname
+          }
         />
       </aside>
     </>
