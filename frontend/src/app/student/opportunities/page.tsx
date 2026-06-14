@@ -5,7 +5,7 @@ import {
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
-
+import { useRouter } from "next/navigation";
 import { toast } from "@/hooks/use-toast";
 
 import { opportunityService } from "@/services/opportunity-service";
@@ -36,7 +36,7 @@ import {
 
 export default function OpportunitiesPage() {
   const queryClient = useQueryClient();
-
+const router = useRouter();
   const {
     data: opportunities,
     isLoading,
@@ -70,71 +70,97 @@ export default function OpportunitiesPage() {
     );
 
   const applyMutation =
-    useMutation({
-      mutationFn: (
-        opportunityId: number
-      ) =>
-        applicationService.apply({
-          opportunity_id:
-            opportunityId,
-        }),
+  useMutation({
+    mutationFn: (
+      opportunityId: number
+    ) =>
+      applicationService.apply({
+        opportunity_id:
+          opportunityId,
+      }),
 
-      onSuccess: () => {
-        toast.success(
-          "Application submitted",
-          {
-            description:
-              "Your application has been submitted successfully.",
-          }
-        );
+    onSuccess: () => {
+      toast.success(
+        "Application submitted",
+        {
+          description:
+            "Your application has been submitted successfully.",
+        }
+      );
 
-        queryClient.invalidateQueries(
-          {
-            queryKey: [
-              "applications",
-            ],
-          }
-        );
-      },
+      queryClient.invalidateQueries(
+        {
+          queryKey: [
+            "applications",
+          ],
+        }
+      );
+    },
 
-      onError: (
-        error: unknown
-      ) => {
-        let message =
-          "Failed to apply.";
+    onError: (
+      error: unknown
+    ) => {
+      let message =
+        "Failed to apply.";
 
-        if (
-          typeof error ===
-            "object" &&
-          error !== null &&
-          "response" in error
-        ) {
-          const axiosError =
-            error as {
-              response?: {
-                data?: {
-                  detail?: string;
-                };
+      if (
+        typeof error ===
+          "object" &&
+        error !== null &&
+        "response" in error
+      ) {
+        const axiosError =
+          error as {
+            response?: {
+              data?: {
+                detail?: string;
               };
             };
+          };
 
-          message =
-            axiosError
-              .response
-              ?.data
-              ?.detail ??
-            message;
-        }
+        message =
+          axiosError
+            .response
+            ?.data
+            ?.detail ??
+          message;
+      }
 
+      if (
+        message ===
+        "Student profile not found"
+      ) {
         toast.error(
-          "Application failed",
+          "Complete your profile first",
           {
             description:
-              message,
+              "You need to complete your profile before applying to opportunities.",
+
+            action: {
+              label:
+                "Complete Profile",
+
+              onClick: () => {
+                router.push(
+                  "/student/profile"
+                );
+              },
+            },
           }
         );
-      },
-    });
+
+        return;
+      }
+
+      toast.error(
+        "Application failed",
+        {
+          description:
+            message,
+        }
+      );
+    },
+  });
 
   if (isLoading) {
     return (

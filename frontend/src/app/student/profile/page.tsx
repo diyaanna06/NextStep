@@ -16,47 +16,80 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PageHeader } from "@/components/shared/page-header";
 import { Loader2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { AxiosError } from "axios";
+import {
+  useQueryClient,
+} from "@tanstack/react-query";
 export default function ProfilePage() {
-  const { data: profile, isLoading, error } = useQuery({
+  const queryClient =
+  useQueryClient();
+
+const {
+  data: profile,
+  isLoading,
+  error,
+} = useQuery({
     queryKey: ["student-profile"],
     queryFn: () => studentProfileService.getProfile(),
   });
 
-  const mutation = useMutation({
-  mutationFn: (
-    data: StudentProfileFormData
-  ) =>
-    studentProfileService.updateProfile(
-      data
-    ),
-
-  onSuccess: () => {
-    toast.success(
-      "Profile updated",
-      {
-        description:
-          "Your profile has been updated successfully.",
+  const mutation =
+  useMutation({
+    mutationFn: (
+      data: StudentProfileFormData
+    ) => {
+      if (profile) {
+        return studentProfileService.updateProfile(
+          data
+        );
       }
-    );
-  },
 
-  onError: () => {
-    toast.error(
-      "Failed to update profile",
-      {
-        description:
-          "Please try again later.",
-      }
-    );
-  },
-});
+      return studentProfileService.createProfile(
+        data
+      );
+    },
+
+    onSuccess: async () => {
+      await queryClient.invalidateQueries(
+        {
+          queryKey: [
+            "student-profile",
+          ],
+        }
+      );
+
+      toast.success(
+        profile
+          ? "Profile updated"
+          : "Profile created",
+        {
+          description:
+            profile
+              ? "Your profile has been updated successfully."
+              : "Your profile has been created successfully.",
+        }
+      );
+    },
+
+    onError: () => {
+      toast.error(
+        profile
+          ? "Failed to update profile"
+          : "Failed to create profile",
+        {
+          description:
+            "Please try again later.",
+        }
+      );
+    },
+  });
   const form = useForm<StudentProfileFormData>({
     resolver: zodResolver(studentProfileSchema),
     defaultValues: {
       full_name: "",
       college: "",
       degree: "",
-      graduation_year: 2026,
+      graduation_year: undefined,
       skills: "",
       career_interests: "",
       resume_link: "",
@@ -85,24 +118,47 @@ export default function ProfilePage() {
     );
   }
 
-  if (error) {
-    return (
-      <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
-        Failed to load profile.
-      </div>
-    );
-  }
+  const isProfileMissing =
+  error instanceof
+    AxiosError &&
+  error.response
+    ?.status ===
+    404;
+
+if (
+  error &&
+  !isProfileMissing
+) {
+  return (
+    <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive">
+      Failed to load profile.
+    </div>
+  );
+}
 
   return (
     <div className="space-y-8">
       <PageHeader
-        title="Your Profile"
-        description="Keep your academic and career information up to date."
+        title={
+  profile
+    ? "Your Profile"
+    : "Complete Your Profile"
+}
+
+description={
+  profile
+    ? "Keep your academic and career information up to date."
+    : "Complete your profile to unlock applications and mentorship requests."
+}
       />
 
       <Card>
         <CardHeader>
-          <CardTitle>Personal & academic details</CardTitle>
+         <CardTitle>
+  {profile
+    ? "Personal & academic details"
+    : "Set up your profile"}
+</CardTitle>
         </CardHeader>
         <CardContent>
           <form
@@ -162,7 +218,13 @@ export default function ProfilePage() {
 
             <div className="sm:col-span-2">
               <Button type="submit" disabled={mutation.isPending} size="lg">
-                {mutation.isPending ? "Saving…" : "Save changes"}
+                {mutation.isPending
+  ? profile
+    ? "Saving..."
+    : "Creating..."
+  : profile
+    ? "Save changes"
+    : "Create profile"}
               </Button>
             </div>
           </form>

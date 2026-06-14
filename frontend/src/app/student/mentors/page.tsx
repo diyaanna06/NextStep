@@ -7,7 +7,7 @@ import {
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
-
+import { useRouter } from "next/navigation";
 import { toast } from "@/hooks/use-toast";
 
 import { mentorService } from "@/services/mentor-service";
@@ -45,7 +45,7 @@ import {
 
 export default function MentorsPage() {
   const queryClient = useQueryClient();
-
+  const router = useRouter();
   const [selectedMentorId, setSelectedMentorId] =
     useState<number | null>(null);
 
@@ -114,40 +114,66 @@ export default function MentorsPage() {
     },
 
     onError: (
-      error: unknown
-    ) => {
-      let message =
-        "Failed to send request.";
+  error: unknown
+) => {
+  let errorMessage =
+    "Failed to send request.";
 
-      if (
-        typeof error ===
-          "object" &&
-        error !== null &&
-        "response" in error
-      ) {
-        const axiosError =
-          error as {
-            response?: {
-              data?: {
-                detail?: string;
-              };
-            };
+  if (
+    typeof error ===
+      "object" &&
+    error !== null &&
+    "response" in error
+  ) {
+    const axiosError =
+      error as {
+        response?: {
+          data?: {
+            detail?: string;
           };
+        };
+      };
 
-        message =
-          axiosError.response
-            ?.data?.detail ??
-          message;
+    errorMessage =
+      axiosError.response
+        ?.data?.detail ??
+      errorMessage;
+  }
+
+  if (
+    errorMessage ===
+    "Student profile not found"
+  ) {
+    toast.error(
+      "Complete your profile first",
+      {
+        description:
+          "You need to complete your profile before requesting mentorship sessions.",
+
+        action: {
+          label:
+            "Complete Profile",
+
+          onClick: () => {
+            router.push(
+              "/student/profile"
+            );
+          },
+        },
       }
+    );
 
-      toast.error(
-        "Failed to send session request",
-        {
-          description:
-            message,
-        }
-      );
-    },
+    return;
+  }
+
+  toast.error(
+    "Failed to send session request",
+    {
+      description:
+        errorMessage,
+    }
+  );
+},
   });
 
   if (isLoading) {
