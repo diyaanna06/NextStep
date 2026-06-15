@@ -35,7 +35,19 @@ export const mentorService = {
 
       return response.data;
     },
+createProfile: async (
+  data: UpdateMentorProfileRequest
+) => {
+  const response =
+    await apiClient.post<
+      MentorProfile
+    >(
+      "/mentor/profile",
+      data
+    );
 
+  return response.data;
+},
   updateProfile: async (
     data: UpdateMentorProfileRequest
   ) => {
