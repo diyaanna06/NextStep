@@ -96,7 +96,30 @@ export default function OpportunitiesPage() {
       </div>
     );
   }
+  if (!profile) {
+  return (
+    <div className="space-y-8">
+      <PageHeader
+        title="Opportunities"
+        description="Complete your organization profile to start posting opportunities."
+      />
 
+      <Card>
+        <CardContent className="py-12 text-center">
+          <Briefcase className="mx-auto mb-4 h-10 w-10 text-muted-foreground" />
+
+          <h2 className="text-lg font-semibold">
+            Complete Your Profile First
+          </h2>
+
+          <p className="mt-2 text-sm text-muted-foreground">
+            You need to complete your organization profile before creating opportunities.
+          </p>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
   return (
     <div className="space-y-8">
       <PageHeader

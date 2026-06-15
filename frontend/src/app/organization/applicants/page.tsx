@@ -66,7 +66,30 @@ export default function ApplicantsPage() {
       </div>
     );
   }
+if (!profile) {
+  return (
+    <div className="space-y-6">
+      <PageHeader
+        title="Applicants"
+        description="Complete your organization profile to manage applicants."
+      />
 
+      <Card>
+        <CardContent className="py-12 text-center">
+          <ClipboardList className="mx-auto mb-4 h-10 w-10 text-muted-foreground" />
+
+          <h2 className="text-lg font-semibold">
+            Complete Your Profile First
+          </h2>
+
+          <p className="mt-2 text-sm text-muted-foreground">
+            You need to complete your organization profile before reviewing applicants.
+          </p>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
   return (
     <div className="space-y-6">
       <PageHeader
