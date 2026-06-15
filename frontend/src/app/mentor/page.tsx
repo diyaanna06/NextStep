@@ -25,9 +25,7 @@ import {
   Clock,
   CheckCircle2,
   Activity,
-  Briefcase,
-  Building2,
-  User,
+  
 } from "lucide-react";
 
 export default function MentorDashboard() {

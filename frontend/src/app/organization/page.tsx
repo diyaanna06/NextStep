@@ -82,45 +82,20 @@ export default function OrganizationDashboard() {
       </div>
 
       <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between gap-3">
-            <CardTitle>Organization details</CardTitle>
-            {profile?.verified && (
-              <Badge>
-                <BadgeCheck /> Verified
-              </Badge>
-            )}
-          </div>
-        </CardHeader>
-        <CardContent className="grid gap-4 text-sm sm:grid-cols-2">
-          <div className="flex items-center gap-2">
-            <Briefcase className="h-4 w-4 text-muted-foreground" />
-            <span className="text-muted-foreground">Industry:</span>
-            <span className="font-medium">{profile?.industry ?? "—"}</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <MapPin className="h-4 w-4 text-muted-foreground" />
-            <span className="text-muted-foreground">Location:</span>
-            <span className="font-medium">{profile?.location ?? "—"}</span>
-          </div>
-          <div className="flex items-center gap-2 sm:col-span-2">
-            <Globe className="h-4 w-4 text-muted-foreground" />
-            <span className="text-muted-foreground">Website:</span>
-            {profile?.website ? (
-              <a
-                className="font-medium text-primary hover:underline"
-                href={profile.website}
-                target="_blank"
-                rel="noreferrer"
-              >
-                {profile.website}
-              </a>
-            ) : (
-              <span className="font-medium">—</span>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+  <CardHeader>
+    <CardTitle>
+      Welcome to NextStep
+    </CardTitle>
+  </CardHeader>
+
+  <CardContent>
+    <p className="text-sm text-muted-foreground">
+      Manage opportunities, review applicants, and connect with talented students through your organization dashboard.
+    </p>
+
+    
+  </CardContent>
+</Card>
     </div>
   );
 }

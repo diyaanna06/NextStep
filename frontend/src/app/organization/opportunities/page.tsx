@@ -5,7 +5,10 @@ import {
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
-
+import { useState } from "react";
+import { OpportunityFormData } from "@/lib/validations/opportunity";
+import { Button } from "@/components/ui/button";
+import { Opportunity } from "@/types/opportunity";
 import { organizationService } from "@/services/organization-service";
 import { opportunityService } from "@/services/opportunity-service";
 
@@ -18,7 +21,8 @@ import { Briefcase, Loader2 } from "lucide-react";
 
 export default function OpportunitiesPage() {
   const queryClient = useQueryClient();
-
+const [editingOpportunity, setEditingOpportunity] =
+  useState<Opportunity | null>(null);
   const { data: profile } = useQuery({
     queryKey: ["organization-profile"],
     queryFn: () => organizationService.getMyProfile(),
@@ -88,6 +92,45 @@ export default function OpportunitiesPage() {
     );
   },
 });
+const updateMutation = useMutation({
+  mutationFn: ({
+    id,
+    data,
+  }: {
+    id: number;
+    data: OpportunityFormData;
+  }) =>
+    opportunityService.update(
+      id,
+      data
+    ),
+
+  onSuccess: () => {
+    queryClient.invalidateQueries({
+      queryKey: [
+        "organization-opportunities",
+      ],
+    });
+
+    toast.success(
+      "Opportunity updated",
+      {
+        description:
+          "The opportunity has been updated successfully.",
+      }
+    );
+
+    setEditingOpportunity(
+      null
+    );
+  },
+
+  onError: () => {
+    toast.error(
+      "Failed to update opportunity"
+    );
+  },
+});
 
   if (isLoading) {
     return (
@@ -129,13 +172,78 @@ export default function OpportunitiesPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Create opportunity</CardTitle>
+          <CardTitle>
+  {editingOpportunity
+    ? "Edit Opportunity"
+    : "Create Opportunity"}
+</CardTitle>
         </CardHeader>
         <CardContent>
-          <OpportunityForm
-            onSubmit={(data) => mutation.mutate(data)}
-            isSubmitting={mutation.isPending}
-          />
+         <OpportunityForm
+  defaultValues={
+    editingOpportunity
+      ? {
+          title:
+            editingOpportunity.title,
+
+          description:
+            editingOpportunity.description,
+
+          opportunity_type:
+            editingOpportunity.opportunity_type,
+
+          location:
+            editingOpportunity.location,
+
+          skills_required:
+            editingOpportunity.skills_required,
+
+          application_deadline:
+            editingOpportunity.application_deadline.slice(
+              0,
+              16
+            ),
+        }
+      : undefined
+  }
+
+  submitText={
+    editingOpportunity
+      ? "Update Opportunity"
+      : "Create Opportunity"
+  }
+
+  onCancel={
+    editingOpportunity
+      ? () =>
+          setEditingOpportunity(
+            null
+          )
+      : undefined
+  }
+
+  onSubmit={(data) => {
+    if (
+      editingOpportunity
+    ) {
+      updateMutation.mutate({
+        id:
+          editingOpportunity.id,
+
+        data,
+      });
+    } else {
+      mutation.mutate(
+        data
+      );
+    }
+  }}
+
+  isSubmitting={
+    mutation.isPending ||
+    updateMutation.isPending
+  }
+/>
         </CardContent>
       </Card>
 
@@ -160,11 +268,31 @@ export default function OpportunitiesPage() {
                     <CardTitle className="truncate">
                       {opportunity.title}
                     </CardTitle>
-                    <Badge
-                      variant={opportunity.is_active ? "default" : "secondary"}
-                    >
-                      {opportunity.is_active ? "Active" : "Inactive"}
-                    </Badge>
+                   <div className="flex gap-2">
+  <Badge
+    variant={
+      opportunity.is_active
+        ? "default"
+        : "secondary"
+    }
+  >
+    {opportunity.is_active
+      ? "Active"
+      : "Inactive"}
+  </Badge>
+
+  <Button
+    variant="outline"
+    size="sm"
+    onClick={() =>
+      setEditingOpportunity(
+        opportunity
+      )
+    }
+  >
+    Edit
+  </Button>
+</div>
                   </div>
                 </CardHeader>
                 <CardContent className="text-sm text-muted-foreground">
