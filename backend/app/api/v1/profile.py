@@ -171,6 +171,44 @@ def get_resume(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=str(e)
         )
+@router.get(
+    "/{student_user_id}/resume",
+    response_model=ResumeUrlResponse
+)
+def get_student_resume(
+    student_user_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+
+    try:
+
+        url = (
+            StudentProfileService.get_student_resume_url(
+                db,
+                current_user,
+                student_user_id
+            )
+        )
+
+        return {
+            "url": url
+        }
+
+    except ValueError as e:
+
+        message = str(e)
+
+        if message == "Access denied":
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=message
+            )
+
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=message
+        )
 @router.delete(
     "/resume",
     response_model=ResumeDeleteResponse

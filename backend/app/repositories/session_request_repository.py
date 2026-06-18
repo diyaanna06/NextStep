@@ -152,3 +152,19 @@ class SessionRequestRepository:
             )
             .first()
         )
+    @staticmethod
+    def mentor_has_access_to_student(
+        db: Session,
+        mentor_id: int,
+        student_id: int
+    ) -> bool:
+
+        return (
+            db.query(SessionRequest)
+            .filter(
+                SessionRequest.mentor_id == mentor_id,
+                SessionRequest.student_id == student_id
+            )
+            .first()
+            is not None
+        )

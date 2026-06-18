@@ -15,7 +15,15 @@ from app.services.s3_service import (
     generate_presigned_url,
     delete_resume as delete_resume_from_s3
 )
+from app.repositories.session_request_repository import (
+    SessionRequestRepository
+)
 
+from app.repositories.application_repository import (
+    ApplicationRepository
+)
+
+from app.models.user import User
 
 class StudentProfileService:
 
@@ -150,6 +158,70 @@ class StudentProfileService:
         if not profile.resume_s3_key:
             raise ValueError(
                 "Resume not found"
+            )
+
+        return generate_presigned_url(
+            profile.resume_s3_key
+        )
+    @staticmethod
+    def get_student_resume_url(
+        db: Session,
+        current_user: User,
+        student_user_id: int
+    ) -> str:
+
+        profile = (
+            StudentProfileRepository.get_profile_by_user_id(
+                db,
+                student_user_id
+            )
+        )
+
+        if profile is None:
+            raise ValueError(
+                "Student profile not found"
+            )
+
+        if not profile.resume_s3_key:
+            raise ValueError(
+                "Resume not found"
+            )
+
+        if current_user.role == "mentor":
+
+            has_access = (
+                SessionRequestRepository
+                .mentor_has_access_to_student(
+                    db,
+                    current_user.id,
+                    student_user_id
+                )
+            )
+
+            if not has_access:
+                raise ValueError(
+                    "Access denied"
+                )
+
+        elif current_user.role == "organization":
+
+            has_access = (
+                ApplicationRepository
+                .organization_has_access_to_student(
+                    db,
+                    current_user.id,
+                    student_user_id
+                )
+            )
+
+            if not has_access:
+                raise ValueError(
+                    "Access denied"
+                )
+
+        else:
+            raise ValueError(
+                "Access denied"
             )
 
         return generate_presigned_url(

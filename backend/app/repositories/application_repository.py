@@ -146,3 +146,23 @@ class ApplicationRepository:
             )
             .first()
         )
+    @staticmethod
+    def organization_has_access_to_student(
+        db: Session,
+        organization_id: int,
+        student_id: int
+    ) -> bool:
+
+        return (
+            db.query(Application)
+            .join(
+                Opportunity,
+                Application.opportunity_id == Opportunity.id
+            )
+            .filter(
+                Application.student_id == student_id,
+                Opportunity.organization_id == organization_id
+            )
+            .first()
+            is not None
+        )
