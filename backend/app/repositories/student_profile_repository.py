@@ -24,7 +24,7 @@ class StudentProfileRepository:
             graduation_year=profile_data.graduation_year,
             skills=profile_data.skills,
             career_interests=profile_data.career_interests,
-            resume_link=profile_data.resume_link
+            
         )
 
         db.add(profile)
@@ -58,6 +58,70 @@ class StudentProfileRepository:
 
         for field, value in updates.items():
             setattr(profile, field, value)
+
+        db.commit()
+        db.refresh(profile)
+
+        return profile
+    @staticmethod
+    def update_resume_metadata(
+        db: Session,
+        profile: StudentProfile,
+        s3_key: str,
+        filename: str,
+        uploaded_at
+    ) -> StudentProfile:
+
+        profile.resume_s3_key = s3_key
+        profile.resume_filename = filename
+        profile.resume_uploaded_at = uploaded_at
+
+        db.commit()
+        db.refresh(profile)
+
+        return profile
+    @staticmethod
+    def clear_resume_metadata(
+        db: Session,
+        profile: StudentProfile
+    ) -> StudentProfile:
+
+        profile.resume_s3_key = None
+        profile.resume_filename = None
+        profile.resume_uploaded_at = None
+
+        db.commit()
+        db.refresh(profile)
+
+        return profile
+    @staticmethod
+    def update_resume_metadata(
+        db: Session,
+        profile: StudentProfile,
+        s3_key: str,
+        filename: str,
+        uploaded_at
+    ) -> StudentProfile:
+
+        profile.resume_s3_key = s3_key
+        profile.resume_filename = filename
+        profile.resume_uploaded_at = uploaded_at
+
+        db.commit()
+        db.refresh(profile)
+
+        return profile
+
+
+    @staticmethod
+    def clear_resume_metadata(
+        db: Session,
+        profile: StudentProfile
+    ) -> StudentProfile:
+
+        profile.resume_s3_key = None
+        profile.resume_filename = None
+        profile.resume_uploaded_at = None
 
         db.commit()
         db.refresh(profile)

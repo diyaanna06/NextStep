@@ -1,5 +1,6 @@
 from sqlalchemy import (
     Column,
+    DateTime,
     ForeignKey,
     Integer,
     String,
@@ -49,8 +50,18 @@ class StudentProfile(Base):
         nullable=True
     )
 
-    resume_link = Column(
+    resume_s3_key = Column(
+    String,
+    nullable=True
+    )
+
+    resume_filename = Column(
         String,
+        nullable=True
+    )
+
+    resume_uploaded_at = Column(
+        DateTime,
         nullable=True
     )
 

@@ -2,18 +2,28 @@ from fastapi import (
     APIRouter,
     Depends,
     HTTPException,
-    status
+    status,
+    UploadFile,
+    File
 )
 from sqlalchemy.orm import Session
 
 from app.core.dependencies import get_current_user
 from app.db.session import get_db
 from app.models.user import User
+
 from app.schemas.student_profile import (
     ProfileCreateRequest,
     ProfileUpdateRequest,
     ProfileResponse
 )
+
+from app.schemas.resume import (
+    ResumeUploadResponse,
+    ResumeUrlResponse,
+    ResumeDeleteResponse
+)
+
 from app.services.student_profile_service import (
     StudentProfileService
 )
@@ -87,6 +97,99 @@ def update_profile(
             current_user.id,
             profile_data
         )
+
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e)
+        )
+
+
+@router.post(
+    "/resume",
+    response_model=ResumeUploadResponse
+)
+def upload_resume(
+    file: UploadFile = File(...),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+
+    try:
+
+        if file.content_type != "application/pdf":
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Only PDF files are allowed"
+            )
+
+        profile = (
+            StudentProfileService.upload_resume(
+                db,
+                current_user.id,
+                file
+            )
+        )
+
+        return {
+            "message": "Resume uploaded successfully",
+            "resume_filename": profile.resume_filename,
+            "resume_uploaded_at": profile.resume_uploaded_at
+        }
+
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+
+
+@router.get(
+    "/resume",
+    response_model=ResumeUrlResponse
+)
+def get_resume(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+
+    try:
+
+        url = (
+            StudentProfileService.get_resume_url(
+                db,
+                current_user.id
+            )
+        )
+
+        return {
+            "url": url
+        }
+
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e)
+        )
+@router.delete(
+    "/resume",
+    response_model=ResumeDeleteResponse
+)
+def delete_resume(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+
+    try:
+
+        StudentProfileService.delete_resume(
+            db,
+            current_user.id
+        )
+
+        return {
+            "message": "Resume deleted successfully"
+        }
 
     except ValueError as e:
         raise HTTPException(
