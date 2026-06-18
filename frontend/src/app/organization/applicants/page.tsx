@@ -5,7 +5,8 @@ import {
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
-
+import { studentProfileService }
+from "@/services/student-profile-service";
 import { organizationService } from "@/services/organization-service";
 import { opportunityService } from "@/services/opportunity-service";
 import { applicationService } from "@/services/application-service";
@@ -15,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/shared/page-header";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { ClipboardList, Loader2 } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
 
 export default function ApplicantsPage() {
   const queryClient = useQueryClient();
@@ -43,7 +45,31 @@ export default function ApplicantsPage() {
       return allApplications.flat();
     },
   });
+const handleViewResume =
+  async (
+    studentId: number
+  ) => {
 
+    try {
+
+      const response =
+        await studentProfileService.getStudentResume(
+          studentId
+        );
+
+      window.open(
+        response.url,
+        "_blank"
+      );
+
+    } catch {
+
+      toast.error(
+        "Failed to open resume"
+      );
+
+    }
+  };
   const mutation = useMutation({
     mutationFn: ({
       applicationId,
@@ -141,16 +167,17 @@ if (!profile) {
                     {application.student.skills || "Not provided"}
                   </p>
 
-                  {application.student.resume_link && (
-                    <a
-                      href={application.student.resume_link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-primary hover:underline"
-                    >
-                      View Resume
-                    </a>
-                  )}
+                  <Button
+  size="sm"
+  variant="outline"
+  onClick={() =>
+    handleViewResume(
+      application.student.user_id
+    )
+  }
+>
+  View Resume
+</Button>
                 </div>
                   <p className="mb-3 text-xs uppercase tracking-wider text-muted-foreground">
                     Update status

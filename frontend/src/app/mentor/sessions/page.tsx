@@ -1,5 +1,5 @@
 "use client";
-
+import { studentProfileService } from "@/services/student-profile-service";
 import {
   useMutation,
   useQuery,
@@ -22,7 +22,25 @@ const router = useRouter();
     queryKey: ["mentor-profile"],
     queryFn: () => mentorService.getMyProfile(),
   });
+const handleViewResume = async (
+  studentId: number
+) => {
+  try {
+    const response =
+      await studentProfileService.getStudentResume(
+        studentId
+      );
 
+    window.open(
+      response.url,
+      "_blank"
+    );
+  } catch {
+    toast.error(
+      "Failed to open resume"
+    );
+  }
+};
   const {
   data: requests,
   isLoading,
@@ -248,19 +266,17 @@ if (!profile) {
                   </p>
                 )}
 
-                {request.student.resume_link && (
-                  <a
-                    href={
-                      request.student
-                        .resume_link
-                    }
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-primary hover:underline"
-                  >
-                    View Resume
-                  </a>
-                )}
+                <Button
+  size="sm"
+  variant="outline"
+  onClick={() =>
+    handleViewResume(
+      request.student.user_id
+    )
+  }
+>
+  View Resume
+</Button>
               </div>
 
               <div className="rounded-md bg-muted p-3 text-sm text-muted-foreground">

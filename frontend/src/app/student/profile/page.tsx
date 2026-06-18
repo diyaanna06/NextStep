@@ -1,5 +1,5 @@
 "use client";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -23,7 +23,8 @@ import {
 export default function ProfilePage() {
   const queryClient =
   useQueryClient();
-
+const [resumeFile, setResumeFile] =
+  useState<File | null>(null);
 const {
   data: profile,
   isLoading,
@@ -32,7 +33,53 @@ const {
     queryKey: ["student-profile"],
     queryFn: () => studentProfileService.getProfile(),
   });
+  const uploadResumeMutation =
+  useMutation({
+    mutationFn: (file: File) =>
+      studentProfileService.uploadResume(
+        file
+      ),
 
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: ["student-profile"],
+      });
+
+      toast.success(
+        "Resume uploaded successfully"
+      );
+
+      setResumeFile(null);
+    },
+
+    onError: () => {
+      toast.error(
+        "Failed to upload resume"
+      );
+    },
+  });
+
+const deleteResumeMutation =
+  useMutation({
+    mutationFn: () =>
+      studentProfileService.deleteResume(),
+
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: ["student-profile"],
+      });
+
+      toast.success(
+        "Resume deleted successfully"
+      );
+    },
+
+    onError: () => {
+      toast.error(
+        "Failed to delete resume"
+      );
+    },
+  });
   const mutation =
   useMutation({
     mutationFn: (
@@ -86,27 +133,27 @@ const {
   const form = useForm<StudentProfileFormData>({
     resolver: zodResolver(studentProfileSchema),
     defaultValues: {
-      full_name: "",
-      college: "",
-      degree: "",
-      graduation_year: undefined,
-      skills: "",
-      career_interests: "",
-      resume_link: "",
-    },
+  full_name: "",
+  college: "",
+  degree: "",
+  graduation_year: undefined,
+  skills: "",
+  career_interests: "",
+},
   });
 
   useEffect(() => {
     if (profile) {
       form.reset({
-        full_name: profile.full_name,
-        college: profile.college,
-        degree: profile.degree,
-        graduation_year: profile.graduation_year,
-        skills: profile.skills ?? "",
-        career_interests: profile.career_interests ?? "",
-        resume_link: profile.resume_link ?? "",
-      });
+  full_name: profile.full_name,
+  college: profile.college,
+  degree: profile.degree,
+  graduation_year: profile.graduation_year,
+  skills: profile.skills ?? "",
+  career_interests:
+    profile.career_interests ?? "",
+});
+    
     }
   }, [profile, form]);
 
@@ -135,7 +182,22 @@ if (
     </div>
   );
 }
+const handleViewResume =
+  async () => {
+    try {
+      const response =
+        await studentProfileService.getResumeUrl();
 
+      window.open(
+        response.url,
+        "_blank"
+      );
+    } catch {
+      toast.error(
+        "Failed to open resume"
+      );
+    }
+  };
   return (
     <div className="space-y-8">
       <PageHeader
@@ -189,15 +251,7 @@ description={
               />
             </div>
 
-            <div className="space-y-1.5">
-              <Label htmlFor="resume_link">Resume link</Label>
-              <Input
-                id="resume_link"
-                placeholder="https://…"
-                {...form.register("resume_link")}
-              />
-            </div>
-
+            
             <div className="space-y-1.5 sm:col-span-2">
               <Label htmlFor="skills">Skills</Label>
               <Textarea
@@ -230,6 +284,83 @@ description={
           </form>
         </CardContent>
       </Card>
+      <Card>
+  <CardHeader>
+    <CardTitle>
+      Resume
+    </CardTitle>
+  </CardHeader>
+
+  <CardContent className="space-y-4">
+    {profile?.resume_filename ? (
+      <>
+        <div>
+          <p className="font-medium">
+            {profile.resume_filename}
+          </p>
+
+          {profile.resume_uploaded_at && (
+            <p className="text-sm text-muted-foreground">
+              Uploaded{" "}
+              {new Date(
+                profile.resume_uploaded_at
+              ).toLocaleString()}
+            </p>
+          )}
+        </div>
+
+        <div className="flex gap-2">
+          <Button
+            type="button"
+            onClick={
+              handleViewResume
+            }
+          >
+            View Resume
+          </Button>
+
+          <Button
+            type="button"
+            variant="destructive"
+            onClick={() =>
+              deleteResumeMutation.mutate()
+            }
+          >
+            Delete Resume
+          </Button>
+        </div>
+      </>
+    ) : (
+      <p className="text-sm text-muted-foreground">
+        No resume uploaded yet.
+      </p>
+    )}
+
+    <Input
+      type="file"
+      accept=".pdf"
+      onChange={(e) =>
+        setResumeFile(
+          e.target.files?.[0] ?? null
+        )
+      }
+    />
+
+    <Button
+      type="button"
+      disabled={!resumeFile}
+      onClick={() => {
+        if (resumeFile) {
+          uploadResumeMutation.mutate(
+            resumeFile
+          );
+        }
+      }}
+    >
+      Upload Resume
+    </Button>
+  </CardContent>
+</Card>
     </div>
   );
 }

@@ -6,5 +6,7 @@ export interface StudentProfile {
   graduation_year: number;
   skills: string | null;
   career_interests: string | null;
-  resume_link: string | null;
+
+  resume_filename: string | null;
+  resume_uploaded_at: string | null;
 }

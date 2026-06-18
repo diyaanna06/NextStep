@@ -7,8 +7,8 @@ import { opportunityService } from "@/services/opportunity-service";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PageHeader } from "@/components/shared/page-header";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Badge } from "@/components/ui/badge";
-import { Briefcase, Globe, MapPin, BadgeCheck } from "lucide-react";
+
+import { Briefcase,  BadgeCheck } from "lucide-react";
 
 export default function OrganizationDashboard() {
   const { data: profile, isLoading: profileLoading } = useQuery({
